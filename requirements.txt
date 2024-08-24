@@ -1,0 +1,4 @@
+maturin==1.7.1
+numpy==2.1.0
+pygame==2.6.0
+tomli==2.0.1
