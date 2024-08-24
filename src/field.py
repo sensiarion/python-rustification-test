@@ -1,20 +1,25 @@
 import random
 from typing import Iterable
 
+import live_game
 import numpy as np
 
 from src.cell import CellState, Cell
 
 
 class Field:
-    def __init__(self, size: tuple[int, int] = (64, 48)):
+    def __init__(self, size: tuple[int, int] = (64, 48), init_state: np.ndarray[int] = None):
         def _is_alive_on_start():
             if random.random() <= 0.1:
                 return CellState.alive
             return CellState.dead
 
-        self._size = size
-        self._field = np.array([[Cell(i, j, _is_alive_on_start()) for j in range(size[1])] for i in range(size[0])])
+        if init_state is None:
+            self._size = size
+            self._field = [[Cell(i, j, _is_alive_on_start()) for j in range(size[1])] for i in range(size[0])]
+        else:
+            self._size = size
+            self._field = init_state
 
     def iterate(self) -> Iterable[tuple[int, int, Cell]]:
         for x, row in enumerate(self._field):
@@ -27,14 +32,22 @@ class Field:
         return self._field[x % self._size[0]][y % self._size[1]]
 
     def _neighbors(self, x: int, y: int) -> int:
-        offsets = (
-            (-1, -1), (-1, 0), (-1, 1),
-            (0, -1), (0, 1),
-            (1, -1), (1, 0), (1, 1),
-        )
-        alive_counter = 0
-        for offset in offsets:
-            if self._get(x + offset[0], y + offset[1]).state == CellState.alive:
-                alive_counter += 1
+        t =  live_game.neighbors(x,y,self._field,self._size)
+        return t
+        # offsets = (
+        #     (-1, -1), (-1, 0), (-1, 1),
+        #     (0, -1), (0, 1),
+        #     (1, -1), (1, 0), (1, 1),
+        # )
+        # alive_counter = 0
+        # for offset in offsets:
+        #
+        #     # if self._get(x + offset[0], y + offset[1]).state == CellState.alive:
+        #     t = live_game.get_from_field(x + offset[0], y + offset[1], self._field, self._size)
+        #     if t.state == CellState.alive:
+        #         alive_counter += 1
+        #
+        # return alive_counter
 
-        return alive_counter
+    def copy(self) -> "Field":
+        return Field(init_state=self._field.copy())
