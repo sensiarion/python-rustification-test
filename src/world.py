@@ -6,7 +6,7 @@ import pygame.draw
 
 from src.abstract_world import AbstractWorld
 from src.cell import CellState, Cell
-from src.field import Field
+# from src.field import Field
 
 if typing.TYPE_CHECKING:
     from src.game import Game
@@ -16,7 +16,7 @@ class LiveWorld(AbstractWorld):
 
     def __init__(self, size: tuple[int, int] = (64, 48)):
 
-        self._field = Field(size)
+        self._field = live_game.Field(size)
         self._size = size
 
         self._game: "Game|None" = None
@@ -29,17 +29,8 @@ class LiveWorld(AbstractWorld):
         return self._field.iterate()
 
     def update(self, delta: float):
-        live_game.update(self._field._field, self._size)
-        # for x, y, cell in self.iterate():
-        #     alive_neighbours = self._field._neighbors(x, y)
-        #     if cell.state == CellState.dead:
-        #         if alive_neighbours == 3:
-        #             cell.state = CellState.alive
-        #     elif cell.state == CellState.alive:
-        #         if 2 <= alive_neighbours <= 3:
-        #             cell.state = CellState.alive
-        #         else:
-        #             cell.state = CellState.dead
+        # live_game.update(self._field._field, self._size)
+        self._field.update()
 
     def render(self, screen: pygame.Surface):
         full_cell_size = (self._game._height // self._size[0], self._game._width // self._size[1])
@@ -48,14 +39,14 @@ class LiveWorld(AbstractWorld):
 
         screen.blit(self._background_prerender, (0, 0))
 
-        for x, y, cell in self.iterate():
+        for x, y, cell_state in self.iterate():
             inner_rect = (
                 x * cell_size[0] + (x * border_size[0]), y * cell_size[1] + (y * border_size[1]),
                 cell_size[0], cell_size[1]
             )
 
             # pygame.draw.rect(screen, (255, 255, 255), rect)
-            if cell.state == CellState.alive:
+            if cell_state == CellState.alive:
                 pygame.draw.ellipse(screen, (255, 255, 255), inner_rect)
 
     def start(self, game: "Game"):
