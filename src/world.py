@@ -1,6 +1,7 @@
 import typing
 from typing import Iterable
 
+import live_game
 import pygame.draw
 
 from src.abstract_world import AbstractWorld
@@ -28,16 +29,17 @@ class LiveWorld(AbstractWorld):
         return self._field.iterate()
 
     def update(self, delta: float):
-        for x, y, cell in self.iterate():
-            alive_neighbours = self._field._neighbors(x, y)
-            if cell.state == CellState.dead:
-                if alive_neighbours == 3:
-                    cell.state = CellState.alive
-            elif cell.state == CellState.alive:
-                if 2 <= alive_neighbours <= 3:
-                    cell.state = CellState.alive
-                else:
-                    cell.state = CellState.dead
+        live_game.update(self._field._field, self._size)
+        # for x, y, cell in self.iterate():
+        #     alive_neighbours = self._field._neighbors(x, y)
+        #     if cell.state == CellState.dead:
+        #         if alive_neighbours == 3:
+        #             cell.state = CellState.alive
+        #     elif cell.state == CellState.alive:
+        #         if 2 <= alive_neighbours <= 3:
+        #             cell.state = CellState.alive
+        #         else:
+        #             cell.state = CellState.dead
 
     def render(self, screen: pygame.Surface):
         full_cell_size = (self._game._height // self._size[0], self._game._width // self._size[1])
