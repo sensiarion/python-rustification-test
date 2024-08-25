@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 use std::thread::sleep;
 use pyo3::prelude::*;
+use pyo3::types::PyList;
 
 //
 // #[derive(FromPyObject)]
@@ -204,6 +205,34 @@ impl Field {
 }
 
 
+/// renders field content on display
+#[pyfunction]
+fn render<'py>(
+    screen: &Bound<'py, PyAny>,
+    background: &Bound<'py, PyAny>,
+    ellipse_func: &Bound<'py, PyAny>,
+    field: &Field,
+    size: (u32, u32),
+    window_size: (u32, u32),
+) {
+    let full_cell_size: (usize, usize) = (window_size.1.div_euclid(size.0) as usize, window_size.0.div_euclid(size.1) as usize);
+    const BORDER_SIZE: (usize, usize) = (2, 2);
+
+    let cell_size: (usize, usize) = (full_cell_size.0 - BORDER_SIZE.0, full_cell_size.1 - BORDER_SIZE.1);
+
+    screen.call_method("blit", (background, (0,0)), None).unwrap();
+    for (x, y, cell_state) in FieldIterator::new(field) {
+        let inner_rect = (
+            x * cell_size.0 + (x * BORDER_SIZE.0), y * cell_size.1 + (y * BORDER_SIZE.1),
+            cell_size.0, cell_size.1
+        );
+        if cell_state == CellState::Alive {
+            ellipse_func.call((screen, (255, 255, 255), inner_rect), None).unwrap();
+        }
+    }
+}
+
+
 /// A Python module implemented in Rust.
 #[pymodule]
 fn live_game(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -211,5 +240,6 @@ fn live_game(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<CellState>()?;
     m.add_class::<Field>()?;
     m.add_class::<FieldIterator>()?;
+    m.add_function(wrap_pyfunction!(render, m)?)?;
     Ok(())
 }
